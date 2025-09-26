@@ -1,0 +1,59 @@
+[
+  {
+    "id": "0x62092ce50d4ed31ec4bd3e455ff5f937f47b01d2428f2e1c4e2dd57e65006e97",
+    "question": "测试市场保存功能",
+    "conditionId": "0x62092ce50d4ed31ec4bd3e455ff5f937f47b01d2428f2e1c4e2dd57e65006e97",
+    "yesTokenId": "0x62092ce50d4ed31ec4bd3e455ff5f937f47b01d2428f2e1c4e2dd57e65006e97",
+    "noTokenId": "0xea88d183b733a24ae2f260d013203621373ef64bd413e9cb3b971b90cf237299",
+    "transactions": {
+      "usdcTransfer": "0x4c99eee46465e974c8288ee2a9da124dcbfceba50324433574a9f9cbba2db38b",
+      "mintYes": "0x7a716394ede4653b396a9e1158ea2bf6b118ba6ed280bc8a79944bcf48c53f74",
+      "mintNo": "0x179740fdf5413245bfa9a9f807764555fcc4703ad495ba4016b6f61e3b575d53",
+      "register": "0xfc6ffd31cff3fe4f5ddbd92fda688153bf6ba5b127dbd70c305d3de6691ab14f"
+    },
+    "balances": {
+      "yes": "1000.0",
+      "no": "1000.0"
+    },
+    "createdAt": "2025-09-24T08:14:48.797Z",
+    "status": "active"
+  },
+  {
+    "id": "0x095a7633110884e9d48a761eedec73b09e3f51ec33bb1dacecf36eb458f45d53",
+    "question": "明天会下雨吗",
+    "conditionId": "0x095a7633110884e9d48a761eedec73b09e3f51ec33bb1dacecf36eb458f45d53",
+    "yesTokenId": "0x095a7633110884e9d48a761eedec73b09e3f51ec33bb1dacecf36eb458f45d53",
+    "noTokenId": "0x5a33371203ea5e3d277f369a5a363a652a50ab70973a8a5b976255fe443a8a89",
+    "transactions": {
+      "usdcTransfer": "0x172b19c93f3265751d822c0b60d841a853c9c249d54a66f42a8216144d602ae9",
+      "mintYes": "0x97df07f5b52c36825a64d3549a071d1c7e752d80ec2e23cf27a8d3e891e6449f",
+      "mintNo": "0xe3ed20f001742e34d94e04e0f00d829caa1500332f20581f1d6f72286ccbf91c",
+      "register": "0x61ab8d5dd3d40024e5e24d7b9ef5bd0e12be50a007080564e8dfccc395c9027d"
+    },
+    "balances": {
+      "yes": "1000.0",
+      "no": "1000.0"
+    },
+    "createdAt": "2025-09-24T08:18:16.419Z",
+    "status": "active"
+  },
+  {
+    "id": "0x590d1c206df78e24638eb09aa9531f580ad8bd4fd102d24eac63f33dd176a98a",
+    "question": "2024年美国总统大选谁会获胜？",
+    "conditionId": "0x590d1c206df78e24638eb09aa9531f580ad8bd4fd102d24eac63f33dd176a98a",
+    "yesTokenId": "0x590d1c206df78e24638eb09aa9531f580ad8bd4fd102d24eac63f33dd176a98a",
+    "noTokenId": "0x6947ff47daf15118fa80c7a03c03ae28c5b073aed817e88bed9245bad4688014",
+    "transactions": {
+      "usdcTransfer": "0x81f8d34da7e8e533f0cd0f58902bf99edcacd93909243a725d23cd79ce79f8b0",
+      "mintYes": "0x91ccfb61f2c1efdf7eada847f894bfcf9ed0460e685f09c3e6012ca5368e2bbf",
+      "mintNo": "0x6c518a09208ae91ae90d291366b081198447f98a53e6f5e54692d2423a7f4418",
+      "register": "0x0459dd509beef8a1ab39f7c23c094a29f05dfc9e3b75b5daebd4e251f8c255bf"
+    },
+    "balances": {
+      "yes": "1000.0",
+      "no": "1000.0"
+    },
+    "createdAt": "2025-09-24T08:26:49.376Z",
+    "status": "active"
+  }
+]

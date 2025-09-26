@@ -8,7 +8,9 @@
         "prettier-plugin-solidity": "^1.0.0-beta.19"
     },
     "dependencies": {
+        "cors": "^2.8.5",
         "ethers": "^6.15.0",
+        "express": "^5.1.0",
         "secp256k1": "^5.0.1"
     }
 }

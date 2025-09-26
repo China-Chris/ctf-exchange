@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预测市场平台</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.15.0/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@rainbow-me/rainbowkit@1.3.0/dist/index.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/wagmi@1.4.0/dist/index.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/viem@1.19.0/dist/index.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            text-align: center;
+            color: #4facfe;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .login-section {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .login-card h3 {
+            color: #4facfe;
+            margin-bottom: 15px;
+        }
+
+        .login-card input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .login-card button {
+            width: 100%;
+            padding: 12px;
+            background: #4facfe;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .login-card button:hover {
+            background: #3d8bfe;
+        }
+
+        .user-info {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .user-info.active {
+            display: block;
+        }
+
+        .user-info h3 {
+            color: #4facfe;
+            margin-bottom: 10px;
+        }
+
+        .balance-display {
+            display: flex;
+            gap: 20px;
+            margin: 10px 0;
+        }
+
+        .balance-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .balance-item h4 {
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .balance-item .amount {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #4facfe;
+        }
+
+        .main-content {
+            display: none;
+        }
+
+        .main-content.active {
+            display: block;
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            background: #f8f9fa;
+            border: none;
+            font-size: 1em;
+            transition: background 0.3s;
+        }
+
+        .tab.active {
+            background: #4facfe;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .market-list {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .market-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #4facfe;
+        }
+
+        .market-item h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .market-item p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .market-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-item .label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .stat-item .value {
+            font-weight: bold;
+            color: #4facfe;
+        }
+
+        .market-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+
+        .btn-primary {
+            background: #4facfe;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3d8bfe;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .admin-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .admin-panel h3 {
+            color: #4facfe;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 1em;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .transaction-log {
+            background: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.9em;
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .trading-interface {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .trading-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .trading-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .trading-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .trading-section:hover {
+            border-color: #4facfe;
+            transform: translateY(-2px);
+        }
+
+        .trading-section h4 {
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .price-info {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .trading-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-outline-success {
+            background: transparent;
+            color: #28a745;
+            border: 2px solid #28a745;
+        }
+
+        .btn-outline-success:hover {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-outline-danger {
+            background: transparent;
+            color: #dc3545;
+            border: 2px solid #dc3545;
+        }
+
+        .btn-outline-danger:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .trading-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .trading-row {
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85em;
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>🎯 预测市场平台</h1>
+            <div class="wallet-section">
+                <div id="rainbowkit-connect-button"></div>
+            </div>
+        </div>
+
+
+        <!-- 主要内容 -->
+        <div class="main-content" id="mainContent">
+            <!-- 市场列表 -->
+            <div class="market-list">
+                <h2>📊 预测市场</h2>
+                <div id="marketList">
+                    <!-- 市场列表将在这里动态加载 -->
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- 交易记录 -->
+        <div class="transaction-log" id="transactionLog">
+            <h4>📝 交易记录</h4>
+            <div id="transactionList">
+                <!-- 交易记录将在这里显示 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentUser = null;
+        let currentUserType = null;
+        let markets = [];
+        let selectedMarket = null;
+        let provider = null;
+        let signer = null;
+        let wagmiClient = null;
+        let rainbowKit = null;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 立即显示市场列表
+            loadMarkets();
+            setInterval(loadMarkets, 30000); // 每30秒更新一次市场列表
+            
+            // 初始化RainbowKit
+            initializeRainbowKit();
+            
+            // 显示主要内容
+            document.getElementById('mainContent').classList.add('active');
+        });
+
+        // 检查并切换到HashKey测试网
+        async function checkAndSwitchNetwork() {
+            try {
+                if (!window.ethereum) return;
+                
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                const hashkeyChainId = '0x85'; // 133 in hex
+                
+                if (chainId !== hashkeyChainId) {
+                    console.log('当前网络ID:', chainId, '需要切换到:', hashkeyChainId);
+                    
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: hashkeyChainId }],
+                        });
+                        console.log('已切换到HashKey测试网');
+                    } catch (switchError) {
+                        // 如果网络不存在，尝试添加网络
+                        if (switchError.code === 4902) {
+                            try {
+                                await window.ethereum.request({
+                                    method: 'wallet_addEthereumChain',
+                                    params: [{
+                                        chainId: hashkeyChainId,
+                                        chainName: 'HashKey Testnet',
+                                        nativeCurrency: {
+                                            name: 'HSK',
+                                            symbol: 'HSK',
+                                            decimals: 18,
+                                        },
+                                        rpcUrls: ['https://testnet.hsk.xyz'],
+                                        blockExplorerUrls: ['https://testnet.hsk.xyz'],
+                                    }],
+                                });
+                                console.log('已添加并切换到HashKey测试网');
+                            } catch (addError) {
+                                console.error('添加网络失败:', addError);
+                                alert('请手动切换到HashKey测试网 (Chain ID: 133)');
+                            }
+                        } else {
+                            console.error('切换网络失败:', switchError);
+                            alert('请手动切换到HashKey测试网 (Chain ID: 133)');
+                        }
+                    }
+                } else {
+                    console.log('已在HashKey测试网上');
+                }
+            } catch (error) {
+                console.error('网络检查失败:', error);
+            }
+        }
+
+        // 初始化RainbowKit
+        async function initializeRainbowKit() {
+            try {
+                // 配置HashKey测试网
+                const hashkeyTestnet = {
+                    id: 133,
+                    name: 'HashKey Testnet',
+                    network: 'hashkey-testnet',
+                    nativeCurrency: {
+                        decimals: 18,
+                        name: 'HSK',
+                        symbol: 'HSK',
+                    },
+                    rpcUrls: {
+                        public: { http: ['https://testnet.hsk.xyz'] },
+                        default: { http: ['https://testnet.hsk.xyz'] },
+                    },
+                    blockExplorers: {
+                        default: { name: 'HashKey Explorer', url: 'https://testnet.hsk.xyz' },
+                    },
+                    testnet: true,
+                };
+
+                // 创建Wagmi客户端
+                wagmiClient = wagmi.createConfig({
+                    chains: [hashkeyTestnet],
+                    transports: {
+                        [hashkeyTestnet.id]: wagmi.http('https://testnet.hsk.xyz'),
+                    },
+                });
+
+                // 初始化RainbowKit
+                rainbowKit = RainbowKit.initialize({
+                    client: wagmiClient,
+                    chains: [hashkeyTestnet],
+                    appName: '预测市场平台',
+                    appDescription: '基于CTF Exchange的预测市场平台',
+                    appUrl: window.location.origin,
+                    appIcon: '🎯',
+                });
+
+                // 渲染连接按钮
+                rainbowKit.mount('#rainbowkit-connect-button');
+
+                // 监听连接状态变化
+                wagmiClient.subscribe((state) => {
+                    if (state.status === 'connected') {
+                        currentUser = state.accounts[0];
+                        currentUserType = 'user';
+                        provider = new ethers.BrowserProvider(window.ethereum);
+                        
+                        // 检查网络是否正确
+                        checkAndSwitchNetwork();
+                        
+                        updateUserBalance();
+                        addTransaction('RainbowKit钱包连接', `地址: ${currentUser.substring(0, 10)}...`);
+                    } else if (state.status === 'disconnected') {
+                        currentUser = null;
+                        currentUserType = null;
+                        provider = null;
+                        signer = null;
+                        addTransaction('断开钱包连接', '用户已断开连接');
+                    }
+                });
+
+                console.log('RainbowKit初始化成功');
+            } catch (error) {
+                console.error('RainbowKit初始化失败:', error);
+                // 降级到简单的连接按钮
+                createFallbackConnectButton();
+            }
+        }
+
+        // 创建降级连接按钮
+        function createFallbackConnectButton() {
+            const connectButton = document.getElementById('rainbowkit-connect-button');
+            connectButton.innerHTML = `
+                <button onclick="connectWalletFallback()" class="btn btn-primary">
+                    🔗 连接钱包
+                </button>
+            `;
+        }
+
+        // 降级连接钱包函数
+        async function connectWalletFallback() {
+            if (typeof window.ethereum === 'undefined') {
+                alert('请安装MetaMask或其他Web3钱包！');
+                return;
+            }
+
+            try {
+                // 请求连接钱包
+                const accounts = await window.ethereum.request({ 
+                    method: 'eth_requestAccounts' 
+                });
+
+                if (accounts.length > 0) {
+                    // 创建provider和signer
+                    provider = new ethers.BrowserProvider(window.ethereum);
+                    signer = await provider.getSigner();
+                    currentUser = accounts[0];
+                    currentUserType = 'user';
+
+                    // 检查并切换网络
+                    await checkAndSwitchNetwork();
+
+                    // 更新UI
+                    const connectButton = document.getElementById('rainbowkit-connect-button');
+                    connectButton.innerHTML = `
+                        <div class="wallet-info">
+                            <span>${currentUser.substring(0, 6)}...${currentUser.substring(38)}</span>
+                            <button onclick="disconnectWalletFallback()" class="btn btn-sm btn-danger">断开</button>
+                        </div>
+                    `;
+
+                    await updateUserBalance();
+                    addTransaction('钱包连接', `地址: ${currentUser.substring(0, 10)}...`);
+
+                    // 监听账户变化
+                    window.ethereum.on('accountsChanged', handleAccountsChanged);
+                    window.ethereum.on('chainChanged', handleChainChanged);
+                }
+            } catch (error) {
+                console.error('连接钱包失败:', error);
+                alert('连接钱包失败: ' + error.message);
+            }
+        }
+
+        // 降级断开钱包函数
+        function disconnectWalletFallback() {
+            currentUser = null;
+            currentUserType = null;
+            provider = null;
+            signer = null;
+
+            // 更新UI
+            const connectButton = document.getElementById('rainbowkit-connect-button');
+            connectButton.innerHTML = `
+                <button onclick="connectWalletFallback()" class="btn btn-primary">
+                    🔗 连接钱包
+                </button>
+            `;
+
+            addTransaction('断开钱包连接', '用户已断开连接');
+        }
+
+        // 处理账户变化
+        function handleAccountsChanged(accounts) {
+            if (accounts.length === 0) {
+                if (rainbowKit) {
+                    // RainbowKit模式
+                    currentUser = null;
+                    currentUserType = null;
+                    provider = null;
+                    signer = null;
+                    addTransaction('断开钱包连接', '用户已断开连接');
+                } else {
+                    // 降级模式
+                    disconnectWalletFallback();
+                }
+            } else {
+                location.reload(); // 重新加载页面以更新账户
+            }
+        }
+
+        // 处理网络变化
+        function handleChainChanged(chainId) {
+            location.reload(); // 重新加载页面以更新网络
+        }
+
+
+
+
+
+        // 加载市场列表
+        async function loadMarkets() {
+            try {
+                const response = await fetch('http://localhost:3001/api/markets');
+                const result = await response.json();
+                
+                if (result.success) {
+                    markets = result.markets;
+                    displayMarkets();
+                } else {
+                    console.error('加载市场失败:', result.message);
+                }
+            } catch (error) {
+                console.error('加载市场失败:', error);
+            }
+        }
+
+        // 显示市场列表
+        function displayMarkets() {
+            const marketList = document.getElementById('marketList');
+            
+            if (markets.length === 0) {
+                marketList.innerHTML = '<p>暂无活跃市场</p>';
+                return;
+            }
+            
+            marketList.innerHTML = markets.map(market => `
+                <div class="market-item">
+                    <h3>${market.question}</h3>
+                    <p>状态: ${market.status === 'active' ? '🟢 活跃' : '🔴 已结束'}</p>
+                    <div class="market-stats">
+                        <div class="stat-item">
+                            <div class="label">YES代币</div>
+                            <div class="value">${market.balances.yes}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="label">NO代币</div>
+                            <div class="value">${market.balances.no}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="label">创建时间</div>
+                            <div class="value">${new Date(market.createdAt).toLocaleDateString()}</div>
+                        </div>
+                    </div>
+                    <div class="market-actions">
+                        <div class="trading-buttons">
+                            <div class="trading-row">
+                                <button class="btn btn-success btn-sm" onclick="buyTokens('${market.id}', 'YES')">🟢 买入YES</button>
+                                <button class="btn btn-outline-success btn-sm" onclick="sellTokens('${market.id}', 'YES')">🟢 卖出YES</button>
+                            </div>
+                            <div class="trading-row">
+                                <button class="btn btn-danger btn-sm" onclick="buyTokens('${market.id}', 'NO')">🔴 买入NO</button>
+                                <button class="btn btn-outline-danger btn-sm" onclick="sellTokens('${market.id}', 'NO')">🔴 卖出NO</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+
+
+
+        // 买入代币
+        async function buyTokens(marketId, tokenType) {
+            if (!currentUser) {
+                alert('请先连接钱包！');
+                return;
+            }
+            
+            const market = markets.find(m => m.id === marketId);
+            if (!market) {
+                alert('市场不存在！');
+                return;
+            }
+            
+            const amount = prompt(`请输入要买入的${tokenType}代币数量:`);
+            if (!amount || isNaN(amount) || amount <= 0) {
+                alert('请输入有效的数量！');
+                return;
+            }
+            
+            try {
+                // 显示交易状态
+                addTransaction(`创建${tokenType}买单`, `数量: ${amount}, 状态: 处理中...`);
+                
+                // 真实的链上交易
+                const result = await executeRealTrade(market, tokenType, amount, 'buy');
+                
+                if (result.success) {
+                    addTransaction(`买入${tokenType}代币`, `数量: ${amount}, 订单ID: ${result.orderId}, 状态: ${result.status}`);
+                    alert(`成功创建${tokenType}买单！\n数量: ${amount}\n订单ID: ${result.orderId}\n状态: ${result.status}\n交易哈希: ${result.txHash}`);
+                    await updateUserBalance();
+                    await loadMarkets(); // 重新加载市场数据
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                addTransaction(`买入${tokenType}代币失败`, `错误: ${error.message}`);
+                alert(`买入失败: ${error.message}`);
+            }
+        }
+
+        // 卖出代币
+        async function sellTokens(marketId, tokenType) {
+            if (!currentUser) {
+                alert('请先连接钱包！');
+                return;
+            }
+            
+            const market = markets.find(m => m.id === marketId);
+            if (!market) {
+                alert('市场不存在！');
+                return;
+            }
+            
+            const amount = prompt(`请输入要卖出的${tokenType}代币数量:`);
+            if (!amount || isNaN(amount) || amount <= 0) {
+                alert('请输入有效的数量！');
+                return;
+            }
+            
+            try {
+                // 显示交易状态
+                addTransaction(`创建${tokenType}卖单`, `数量: ${amount}, 状态: 处理中...`);
+                
+                // 真实的链上交易
+                const result = await executeRealTrade(market, tokenType, amount, 'sell');
+                
+                if (result.success) {
+                    addTransaction(`卖出${tokenType}代币`, `数量: ${amount}, 订单ID: ${result.orderId}, 状态: ${result.status}`);
+                    alert(`成功创建${tokenType}卖单！\n数量: ${amount}\n订单ID: ${result.orderId}\n状态: ${result.status}\n交易哈希: ${result.txHash}`);
+                    await updateUserBalance();
+                    await loadMarkets(); // 重新加载市场数据
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                addTransaction(`卖出${tokenType}代币失败`, `错误: ${error.message}`);
+                alert(`卖出失败: ${error.message}`);
+            }
+        }
+
+        // 执行真实的链上交易
+        async function executeRealTrade(market, tokenType, amount, action) {
+            try {
+                if (!provider || !signer) {
+                    throw new Error('钱包未连接');
+                }
+
+                // 合约地址
+                const CTF_ADDRESS = '0x3338E58FAFfE71F89b2Bcb48384C9424c36060c6'; // OpenZeppelin ERC1155 CTF
+                const EXCHANGE_ADDRESS = '0x666DDb461FDb5E10BF6329513D609615C069E489'; // CTF Exchange
+
+                // 获取代币ID
+                const tokenId = tokenType === 'YES' ? market.yesTokenId : market.noTokenId;
+                const amountWei = ethers.parseUnits(amount.toString(), 0); // CTF代币通常是0位小数
+
+                if (action === 'buy') {
+                    // 买入：创建买单，等待匹配
+                    console.log('创建买单...', { 
+                        user: currentUser, 
+                        tokenId: tokenId, 
+                        amount: amountWei.toString(),
+                        tokenType: tokenType,
+                        market: market.question
+                    });
+                    
+                    try {
+                        const requestData = {
+                            userAddress: currentUser,
+                            tokenId: tokenId,
+                            amount: amount.toString(),
+                            tokenType: tokenType,
+                            marketId: market.id,
+                            action: 'buy',
+                            price: '0.5' // 固定价格，实际应该从市场获取
+                        };
+                        
+                        console.log('发送买单请求:', requestData);
+                        
+                        const response = await fetch('http://localhost:3001/api/create-order', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(requestData)
+                        });
+                        
+                        console.log('API响应状态:', response.status);
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP错误: ${response.status} ${response.statusText}`);
+                        }
+                        
+                        const result = await response.json();
+                        console.log('API响应结果:', result);
+                        
+                        if (result.success) {
+                            return {
+                                success: true,
+                                txHash: result.transactionHash,
+                                orderId: result.orderId,
+                                status: result.status
+                            };
+                        } else {
+                            throw new Error(result.message);
+                        }
+                    } catch (apiError) {
+                        console.error('API调用失败:', apiError);
+                        throw new Error('创建买单失败: ' + apiError.message);
+                    }
+
+                } else if (action === 'sell') {
+                    // 卖出：检查余额后创建卖单
+                    const ctfContract = new ethers.Contract(CTF_ADDRESS, [
+                        'function balanceOf(address account, uint256 id) external view returns (uint256)'
+                    ], provider);
+
+                    // 检查余额
+                    try {
+                        const balance = await ctfContract.balanceOf(currentUser, tokenId);
+                        if (balance < amountWei) {
+                            throw new Error(`代币余额不足，当前余额: ${ethers.formatUnits(balance, 0)}`);
+                        }
+                        console.log('代币余额检查通过:', ethers.formatUnits(balance, 0));
+                    } catch (error) {
+                        console.log('余额检查失败:', error.message);
+                        throw new Error('无法检查代币余额，请确保代币存在');
+                    }
+
+                    // 创建卖单
+                    console.log('创建卖单...', { 
+                        user: currentUser, 
+                        tokenId: tokenId, 
+                        amount: amountWei.toString(),
+                        tokenType: tokenType,
+                        market: market.question
+                    });
+                    
+                    try {
+                        const requestData = {
+                            userAddress: currentUser,
+                            tokenId: tokenId,
+                            amount: amount.toString(),
+                            tokenType: tokenType,
+                            marketId: market.id,
+                            action: 'sell',
+                            price: '0.5' // 固定价格，实际应该从市场获取
+                        };
+                        
+                        console.log('发送卖单请求:', requestData);
+                        
+                        const response = await fetch('http://localhost:3001/api/create-order', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(requestData)
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            return {
+                                success: true,
+                                txHash: result.transactionHash,
+                                orderId: result.orderId,
+                                status: result.status
+                            };
+                        } else {
+                            throw new Error(result.message);
+                        }
+                    } catch (apiError) {
+                        console.error('API调用失败:', apiError);
+                        throw new Error('创建卖单失败: ' + apiError.message);
+                    }
+                }
+
+            } catch (error) {
+                console.error('交易执行失败:', error);
+                return {
+                    success: false,
+                    error: error.message
+                };
+            }
+        }
+
+        // 领取USDC
+        async function claimUSDC() {
+            if (!currentUser) {
+                alert('请先连接钱包！');
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/claim-usdc', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ address: currentUser })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`成功领取1000 USDC！\n交易哈希: ${result.transactionHash}`);
+                    addTransaction('领取USDC', `1000 USDC -> ${currentUser.substring(0, 10)}...`);
+                    await updateUserBalance();
+                } else {
+                    alert(`领取失败: ${result.message}`);
+                }
+            } catch (error) {
+                alert(`领取失败: ${error.message}`);
+            }
+        }
+
+        // 更新用户余额
+        async function updateUserBalance() {
+            if (!currentUser || !provider) return;
+            
+            try {
+                // 从链上获取真实的余额
+                const USDC_ADDRESS = '0xC1C68E532E3F2e1F40e6b5EBC9D6c5f8c5e803D6';
+                const CTF_ADDRESS = '0x3338E58FAFfE71F89b2Bcb48384C9424c36060c6';
+                
+                // 获取USDC余额
+                const usdcContract = new ethers.Contract(USDC_ADDRESS, [
+                    'function balanceOf(address account) external view returns (uint256)',
+                    'function decimals() external view returns (uint8)'
+                ], provider);
+                
+                let usdcFormatted = '0';
+                try {
+                    const usdcBalance = await usdcContract.balanceOf(currentUser);
+                    const usdcDecimals = await usdcContract.decimals();
+                    usdcFormatted = ethers.formatUnits(usdcBalance, usdcDecimals);
+                    console.log('USDC余额查询成功:', usdcFormatted);
+                } catch (error) {
+                    console.log('USDC余额查询失败:', error.message);
+                    usdcFormatted = '0';
+                }
+                
+                // 获取CTF代币余额（需要遍历所有市场）
+                let totalYES = 0;
+                let totalNO = 0;
+                
+                const ctfContract = new ethers.Contract(CTF_ADDRESS, [
+                    'function balanceOf(address account, uint256 id) external view returns (uint256)'
+                ], provider);
+                
+                for (const market of markets) {
+                    try {
+                        const yesBalance = await ctfContract.balanceOf(currentUser, market.yesTokenId);
+                        const noBalance = await ctfContract.balanceOf(currentUser, market.noTokenId);
+                        totalYES += parseFloat(ethers.formatUnits(yesBalance, 0));
+                        totalNO += parseFloat(ethers.formatUnits(noBalance, 0));
+                    } catch (error) {
+                        console.log(`获取市场 ${market.question} 余额失败:`, error.message);
+                    }
+                }
+                
+                // 更新UI显示（如果元素存在）
+                const usdcElement = document.getElementById('userUSDCBalance');
+                const yesElement = document.getElementById('userYESBalance');
+                const noElement = document.getElementById('userNOBalance');
+                
+                if (usdcElement) usdcElement.textContent = parseFloat(usdcFormatted).toFixed(2);
+                if (yesElement) yesElement.textContent = totalYES.toString();
+                if (noElement) noElement.textContent = totalNO.toString();
+                
+            } catch (error) {
+                console.error('更新余额失败:', error);
+                // 降级到API查询
+                try {
+                    const response = await fetch(`http://localhost:3001/api/balance/${currentUser}`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const usdcElement = document.getElementById('userUSDCBalance');
+                        if (usdcElement) usdcElement.textContent = result.balance;
+                    }
+                } catch (apiError) {
+                    console.error('API查询余额也失败:', apiError);
+                }
+            }
+        }
+
+        // 添加交易记录
+        function addTransaction(action, details) {
+            const transactionList = document.getElementById('transactionList');
+            const transactionItem = document.createElement('div');
+            transactionItem.className = 'transaction-item';
+            transactionItem.innerHTML = `
+                <strong>${action}</strong>: ${details}
+                <br><small>时间: ${new Date().toLocaleTimeString()}</small>
+            `;
+            transactionList.insertBefore(transactionItem, transactionList.firstChild);
+            
+            // 限制显示最近20条记录
+            while (transactionList.children.length > 20) {
+                transactionList.removeChild(transactionList.lastChild);
+            }
+        }
+    </script>
+</body>
+</html>
